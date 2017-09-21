@@ -2,18 +2,24 @@ import unittest
 import requests
 
 def parse_service_call(expression):
+    if not type(expression) is str:
+        return None
+    if expression == None:
+        expression = "#NONE#"
     expression = str(expression)
     result = requests.get("http://localhost:8080/calc/"+expression)
     assert result.status_code == 200
     assert 'json' in result.headers['Content-Type']
     data = result.json()
-    return data['value']
+    value = data['value']
+    if value == "#NONE#":
+        value = None
+    return value
 
 class Parser_TestCase(unittest.TestCase):
     def test_000_parser_function_exists(self):
-        parse_service_call(3)
+        parse_service_call("3")
 
-    """
     def test_001_parser_returns_None_for_nonsense(self):
         assert parse_service_call("slfdkjs;lged") == None
         assert parse_service_call("") == None
@@ -26,8 +32,6 @@ class Parser_TestCase(unittest.TestCase):
         assert parse_service_call("9") == 9
         assert parse_service_call("x") == None
         assert parse_service_call(".") == None
-
-    """
 
     def test_003_parser_can_parse_multiple_digit_numbers(self):
         assert parse_service_call("00") == 0
